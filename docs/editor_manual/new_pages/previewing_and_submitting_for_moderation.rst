@@ -10,3 +10,6 @@ The Save/Preview/Submit for moderation menu is always present at the bottom of t
 * **Delete:** Clicking this button will take you to a confirmation screen asking you to confirm that you wish to delete the current page. Be sure that this is actually what you want to do, as deleted pages are not recoverable. In many situations simply unpublishing the page will be enough. (moderators and administrators only)
 
 .. image:: ../../_static/images/screen13_publish_menu.png
+
+.. note::
+     The Submit for Moderation button may be hidden if the ``WAGTAIL_MODERATION_ENABLED`` :ref:`setting<wagtail_moderation_enabled>` is set to ``False``.
