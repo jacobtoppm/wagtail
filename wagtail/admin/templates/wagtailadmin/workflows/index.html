@@ -30,6 +30,7 @@
                             <th>
                                 {% trans "Tasks" %}
                             </th>
+
                         </tr>
                     </thead>
                     <tbody>
@@ -48,6 +49,7 @@
                                         {% for task in workflow.tasks %}
                                         <button class="status-tag primary" >{{ task }}</button>
                                         {% endfor %}
+
                                     </div>
                                 </td>
                             </tr>
@@ -62,5 +64,6 @@
         {% endif %}
 
         <a href="{% url 'wagtailadmin_workflows:task_index' %}" class="button">{% trans "Task Listing" %}</a>
+
     </div>
 {% endblock %}

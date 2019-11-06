@@ -290,3 +290,4 @@ class EditTask(EditView):
         context['edit_handler'] = self.edit_handler
         # TODO: add warning msg when there are pages currently on this task in a workflow, add interaction like resetting task state when saved
         return context
+
