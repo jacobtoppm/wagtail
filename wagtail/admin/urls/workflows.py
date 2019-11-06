@@ -15,4 +15,4 @@ urlpatterns = [
     path('tasks/select_type/', workflows.select_task_type, name='select_task_type'),
     path('tasks/index/', workflows.TaskIndex.as_view(), name='task_index'),
     path('tasks/edit/<int:pk>/', workflows.EditTask.as_view(), name='edit_task')
-]
+
