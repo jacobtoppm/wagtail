@@ -2584,7 +2584,6 @@ class TaskState(models.Model):
         self.save()
         return self
 
-<<<<<<< HEAD
     @cached_property
     def specific(self):
         """
@@ -2624,7 +2623,3 @@ class TaskState(models.Model):
         self.finished_at = timezone.now()
         self.save()
         return self
-
-    class Meta:
-        verbose_name = _('Task state')
-        verbose_name_plural = _('Task states')
