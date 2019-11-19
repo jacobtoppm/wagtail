@@ -2368,16 +2368,32 @@ class Task(models.Model):
         else:
             return content_type.get_object_for_this_type(id=self.id)
 
+<<<<<<< HEAD
     def start(self, workflow_state):
         task_state = TaskState(workflow_state=workflow_state)
         task_state.status = TaskState.STATUS_IN_PROGRESS
         task_state.page_revision = workflow_state.page.get_latest_revision()
         task_state.task = self
         task_state.save()
+=======
+    @transaction.atomic
+    def start(self, workflow_state):
+        task_state = TaskState(workflow_state=workflow_state)
+        task_state.status = 'in_progress'
+        task_state.page_revision = workflow_state.page.get_latest_revision()
+        task_state.task = self
+        task_state.save()
+        workflow_state.current_state = task_state
+        workflow_state.save()
+>>>>>>> Rewrite methods to account for revisions. Test and fix initial exceptions. Add database constraint on unique in progress workflow
         return task_state
 
     @transaction.atomic
     def on_action(self, workflow_state, task_state, action_name):
+<<<<<<< HEAD
+=======
+        latest_revision = workflow_state.page.get_latest_revision()
+>>>>>>> Rewrite methods to account for revisions. Test and fix initial exceptions. Add database constraint on unique in progress workflow
         if action_name == 'approve':
             task_state.approve()
             workflow_state.update()
@@ -2409,11 +2425,17 @@ class Workflow(ClusterableModel):
         return Task.objects.filter(workflow_tasks__workflow=self)
 
     def start(self, page, user):
+<<<<<<< HEAD
         # initiates a workflow by creating an instance of WorkflowState
         state = WorkflowState(page=page, workflow=self, status=WorkflowState.STATUS_IN_PROGRESS, requested_by=user)
         state.save()
         state.update()
         return state
+=======
+        state = WorkflowState(page=page, workflow=self, status='in_progress', requested_by=user)
+        state.save()
+        state.update()
+>>>>>>> Rewrite methods to account for revisions. Test and fix initial exceptions. Add database constraint on unique in progress workflow
 
     class Meta:
         verbose_name = _('workflow')
@@ -2444,7 +2466,11 @@ class WorkflowState(models.Model):
 
     page = models.ForeignKey('Page', on_delete=models.CASCADE, verbose_name=_("page"), related_name='workflow_states')
     workflow = models.ForeignKey('Workflow', on_delete=models.CASCADE, verbose_name=_('workflow'), related_name='workflow_states')
+<<<<<<< HEAD
     status = models.fields.CharField(choices=STATUS_CHOICES, verbose_name=_("status"), max_length=50, default=STATUS_IN_PROGRESS)
+=======
+    status = models.fields.CharField(choices=WORKFLOW_STATUS_CHOICES, blank=False, null=False, verbose_name=_("status"), max_length=50, default='in_progress')
+>>>>>>> Rewrite methods to account for revisions. Test and fix initial exceptions. Add database constraint on unique in progress workflow
     created_at = models.DateTimeField(auto_now=True, verbose_name=_("created at"))
     requested_by = models.ForeignKey(settings.AUTH_USER_MODEL,
                                      verbose_name=_('requested by'),
@@ -2463,11 +2489,15 @@ class WorkflowState(models.Model):
         return _("Workflow '{0}' on Page '{1}': {2}").format(self.workflow, self.page, self.status)
 
     def update(self):
+<<<<<<< HEAD
         # checks the status of the current task, and progresses (or ends) the workflow if appropriate
+=======
+>>>>>>> Rewrite methods to account for revisions. Test and fix initial exceptions. Add database constraint on unique in progress workflow
         try:
             current_status = self.current_task_state.status
         except AttributeError:
             current_status = None
+<<<<<<< HEAD
 
         if current_status == 'rejected':
             self.status = current_status
@@ -2498,11 +2528,43 @@ class WorkflowState(models.Model):
         self.status = 'approved'
         self.save()
         self.on_finish()
+=======
+        if not current_status or current_status == 'approved':
+            next_task = self.get_next_task()
+            if next_task:
+                self.current_task_state = next_task.start(self)
+                self.save()
+            else:
+                self.finish()
+        elif current_status == 'rejected' or current_status == 'cancelled':
+            self.status = current_status
+            self.save()
+
+    def get_next_task(self):
+        return Task.objects.filter(workflow_tasks__workflow=self.workflow).exclude(task_states__page_revision=self.page.get_latest_revision()).order_by('workflow_tasks__sort_order').first()
+
+    def cancel(self):
+        self.current_task_state.status = 'cancelled'
+        self.current_task_state.save()
+        self.status = 'cancelled'
+        self.save()
+
+    def finish(self):
+        self.status = 'approved'
+        self.save()
+        if self.current_task_state:
+            self.current_task_state.page_revision.publish()
+        else:
+            self.page.get_latest_revision().publish()
+>>>>>>> Rewrite methods to account for revisions. Test and fix initial exceptions. Add database constraint on unique in progress workflow
 
     class Meta:
         verbose_name = _('Workflow state')
         verbose_name_plural = _('Workflow states')
+<<<<<<< HEAD
         # prevent multiple STATUS_IN_PROGRESS workflows for the same page
+=======
+>>>>>>> Rewrite methods to account for revisions. Test and fix initial exceptions. Add database constraint on unique in progress workflow
         constraints = [
             models.UniqueConstraint(fields=['page'], condition=Q(status='in_progress'), name='unique_in_progress_workflow')
         ]
@@ -2549,40 +2611,6 @@ class TaskState(models.Model):
 
     def __str__(self):
         return _("Task '{0}' on Page Revision '{1}': {2}").format(self.task, self.page_revision, self.status)
-
-    @cached_property
-    def specific(self):
-        """
-        Return this TaskState in its most specific subclassed form.
-        """
-        # the ContentType.objects manager keeps a cache, so this should potentially
-        # avoid a database lookup over doing self.content_type. I think.
-        content_type = ContentType.objects.get_for_id(self.content_type_id)
-        model_class = content_type.model_class()
-        if model_class is None:
-            # Cannot locate a model class for this content type. This might happen
-            # if the codebase and database are out of sync (e.g. the model exists
-            # on a different git branch and we haven't rolled back migrations before
-            # switching branches); if so, the best we can do is return the page
-            # unchanged.
-            return self
-        elif isinstance(self, model_class):
-            # self is already the an instance of the most specific class
-            return self
-        else:
-            return content_type.get_object_for_this_type(id=self.id)
-
-    def approve(self):
-        self.status = 'approved'
-        self.finished_at = timezone.now()
-        self.save()
-        return self
-
-    def reject(self):
-        self.status = 'rejected'
-        self.finished_at = timezone.now()
-        self.save()
-        return self
 
     @cached_property
     def specific(self):
