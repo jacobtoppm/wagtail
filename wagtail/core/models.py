@@ -2368,16 +2368,20 @@ class Task(models.Model):
         else:
             return content_type.get_object_for_this_type(id=self.id)
 
+    @transaction.atomic
     def start(self, workflow_state):
         task_state = TaskState(workflow_state=workflow_state)
         task_state.status = 'in_progress'
         task_state.page_revision = workflow_state.page.get_latest_revision()
         task_state.task = self
         task_state.save()
+        workflow_state.current_state = task_state
+        workflow_state.save()
         return task_state
 
     @transaction.atomic
     def on_action(self, workflow_state, task_state, action_name):
+        latest_revision = workflow_state.page.get_latest_revision()
         if action_name == 'approve':
             task_state.approve()
             workflow_state.update()
@@ -2464,6 +2468,7 @@ class WorkflowState(models.Model):
             current_status = self.current_task_state.status
         except AttributeError:
             current_status = None
+
         if current_status == 'rejected':
             self.status = current_status
             self.save()
@@ -2493,7 +2498,6 @@ class WorkflowState(models.Model):
         self.status = 'approved'
         self.save()
         self.on_finish()
-
 
     class Meta:
         verbose_name = _('Workflow state')
@@ -2596,6 +2600,24 @@ class TaskState(models.Model):
             return self
         else:
             return content_type.get_object_for_this_type(id=self.id)
+
+    def approve(self):
+        self.status = 'approved'
+        self.finished_at = timezone.now()
+        self.save()
+        return self
+
+    def reject(self):
+        self.status = 'rejected'
+        self.finished_at = timezone.now()
+        self.save()
+        return self
+
+    def cancel(self):
+        self.status = 'cancelled'
+        self.finished_at = timezone.now()
+        self.save()
+        return self
 
     class Meta:
         verbose_name = _('Task state')
