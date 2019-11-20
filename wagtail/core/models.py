@@ -2368,20 +2368,16 @@ class Task(models.Model):
         else:
             return content_type.get_object_for_this_type(id=self.id)
 
-    @transaction.atomic
     def start(self, workflow_state):
         task_state = TaskState(workflow_state=workflow_state)
         task_state.status = 'in_progress'
         task_state.page_revision = workflow_state.page.get_latest_revision()
         task_state.task = self
         task_state.save()
-        workflow_state.current_state = task_state
-        workflow_state.save()
         return task_state
 
     @transaction.atomic
     def on_action(self, workflow_state, task_state, action_name):
-        latest_revision = workflow_state.page.get_latest_revision()
         if action_name == 'approve':
             task_state.approve()
             workflow_state.update()
@@ -2579,6 +2575,7 @@ class TaskState(models.Model):
         self.save()
         return self
 
+<<<<<<< HEAD
     @cached_property
     def specific(self):
         """
