@@ -188,4 +188,4 @@ class TestAddWorkflowToPage(TestCase, WagtailTestUtils):
         # Check that this can be overridden by setting overwrite_existing to true
         response = self.post({'page': str(self.other_page.id), 'overwrite_existing': 'True', 'workflow': str(self.workflow.id)})
         self.assertEqual(WorkflowPage.objects.filter(workflow=self.workflow, page=self.other_page).count(), 1)
-        
+
