@@ -7,7 +7,7 @@ from draftjs_exporter.dom import DOM
 import wagtail.admin.rich_text.editors.draftail.features as draftail_features
 from wagtail.admin.auth import user_has_any_page_permission
 from wagtail.admin.localization import get_available_admin_languages, get_available_admin_time_zones
-from wagtail.admin.menu import MenuItem, SubmenuMenuItem, settings_menu
+from wagtail.admin.menu import MenuItem, SubmenuMenuItem, reports_menu, settings_menu
 from wagtail.admin.navigation import get_explorable_root_page
 from wagtail.admin.rich_text import (
     HalloFormatPlugin, HalloHeadingPlugin, HalloListPlugin, HalloPlugin)
@@ -18,7 +18,6 @@ from wagtail.admin.rich_text.converters.html_to_contentstate import (
     BlockElementHandler, ExternalLinkElementHandler, HorizontalRuleHandler,
     InlineStyleElementHandler, ListElementHandler, ListItemElementHandler, PageLinkElementHandler)
 from wagtail.admin.search import SearchArea
-from wagtail.admin.staticfiles import versioned_static
 from wagtail.admin.views.account import email_management_enabled, password_management_enabled
 from wagtail.admin.viewsets import viewsets
 from wagtail.admin.widgets import Button, ButtonWithDropdownFromHook, PageListingButton
@@ -283,7 +282,7 @@ def register_core_features(features):
         'hallo', 'hr',
         HalloPlugin(
             name='hallohr',
-            js=[versioned_static('wagtailadmin/js/hallo-plugins/hallo-hr.js')],
+            js=['wagtailadmin/js/hallo-plugins/hallo-hr.js'],
             order=45,
         )
     )
@@ -296,8 +295,8 @@ def register_core_features(features):
         HalloPlugin(
             name='hallowagtaillink',
             js=[
-                versioned_static('wagtailadmin/js/page-chooser-modal.js'),
-                versioned_static('wagtailadmin/js/hallo-plugins/hallo-wagtaillink.js'),
+                'wagtailadmin/js/page-chooser-modal.js',
+                'wagtailadmin/js/hallo-plugins/hallo-wagtaillink.js',
             ],
         )
     )
@@ -545,7 +544,7 @@ def register_core_features(features):
                 'href': "^(http:|https:|undefined$)",
             }
         }, js=[
-            versioned_static('wagtailadmin/js/page-chooser-modal.js'),
+            'wagtailadmin/js/page-chooser-modal.js',
         ])
     )
     features.register_converter_rule('contentstate', 'link', {
@@ -617,3 +616,23 @@ def register_core_features(features):
             'style_map': {'CODE': 'code'}
         }
     })
+
+
+class ReportsMenuItem(SubmenuMenuItem):
+    template = 'wagtailadmin/shared/menu_submenu_item.html'
+
+
+class LockedPagesMenuItem(MenuItem):
+    def is_shown(self, request):
+        return UserPagePermissionsProxy(request.user).can_remove_locks()
+
+
+@hooks.register('register_reports_menu_item')
+def register_locked_pages_menu_item():
+    return LockedPagesMenuItem(_('Locked Pages'), reverse('wagtailadmin_reports:locked_pages'), classnames='icon icon-locked', order=700)
+
+
+@hooks.register('register_admin_menu_item')
+def register_reports_menu():
+    return ReportsMenuItem(
+        _('Reports'), reports_menu, classnames='icon icon-site', order=9000)
