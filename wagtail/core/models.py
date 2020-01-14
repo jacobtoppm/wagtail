@@ -1542,6 +1542,7 @@ class Page(AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
     def has_workflow(self):
         return self.get_ancestors(inclusive=True).filter(workflowpage__isnull=False).exists()
 
+
     def get_workflow(self):
         if hasattr(self, 'workflowpage'):
             return self.workflowpage.workflow
@@ -2569,6 +2570,7 @@ class WorkflowState(models.Model):
                 if not self.current_task_state or next_task != self.current_task_state.task:
                     # if not on a task, or the next task to move to is not the current task (ie current task's status is
                     # not STATUS_IN_PROGRESS), move to the next task
+
                     self.current_task_state = next_task.specific.start(self)
                     self.save()
                 # otherwise, continue on the current task
