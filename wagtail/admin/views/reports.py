@@ -2,7 +2,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateResponseMixin
 from django.views.generic.list import BaseListView
 
-from wagtail.core.models import Page, UserPagePermissionsProxy
+from wagtail.admin.auth import permission_denied
+from wagtail.core.models import UserPagePermissionsProxy
 
 
 class ReportView(TemplateResponseMixin, BaseListView):
@@ -25,4 +26,11 @@ class LockedPagesView(ReportView):
     header_icon = 'locked'
 
     def get_queryset(self):
-        return (UserPagePermissionsProxy(self.request.user).editable_pages() | Page.objects.filter(locked_by=self.request.user)).filter(locked=True)
+        pages = UserPagePermissionsProxy(self.request.user).editable_pages().filter(locked=True)
+        self.queryset = pages
+        return super().get_queryset()
+
+    def dispatch(self, request, *args, **kwargs):
+        if not UserPagePermissionsProxy(request.user).can_remove_locks():
+            return permission_denied(request)
+        return super().dispatch(request, *args, **kwargs)
