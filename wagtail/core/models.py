@@ -1212,14 +1212,14 @@ class Page(MultiTableCopyMixin, AbstractPage, index.Indexed, ClusterableModel, m
                 return _("expired")
             elif self.approved_schedule:
                 return _("scheduled")
-            elif self.workflow_in_progress():
+            elif self.workflow_in_progress:
                 return _("in moderation")
             else:
                 return _("draft")
         else:
             if self.approved_schedule:
                 return _("live + scheduled")
-            elif self.workflow_in_progress():
+            elif self.workflow_in_progress:
                 return _("live + in moderation")
             elif self.has_unpublished_changes:
                 return _("live + draft")
@@ -2118,7 +2118,7 @@ class PagePermissionTester:
         return self.user.is_superuser or ('publish' in self.permissions)
 
     def can_submit_for_moderation(self):
-        return not self.page_locked() and self.page.has_workflow() and not self.page.workflow_in_progress()
+        return not self.page_locked() and self.page.has_workflow and not self.page.workflow_in_progress
 
     def can_set_view_restrictions(self):
         return self.can_publish()
