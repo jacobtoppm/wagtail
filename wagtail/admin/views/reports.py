@@ -14,6 +14,13 @@ from wagtail.admin.auth import permission_denied
 from wagtail.core.models import UserPagePermissionsProxy
 
 
+def force_to_string(value):
+    """Uses force_str but converts None to empty string instead of 'None'"""
+    if value is None:
+        return ''
+    return force_str(value)
+
+
 class Echo:
     """An object that implements just the write method of the file-like interface."""
 
@@ -84,8 +91,8 @@ class SpreadsheetExportMixin:
             if isinstance(value, value_classes) and export_format in format_dict:
                 return format_dict[export_format]
 
-        # Finally resort to force_str to prevent encoding errors
-        return force_str
+        # Finally resort to force_to_string to prevent encoding errors
+        return force_to_string
 
     def write_xlsx_row(self, worksheet, row_dict, row_number):
         for col_number, (field, value) in enumerate(row_dict.items()):
