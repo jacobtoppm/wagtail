@@ -8,7 +8,8 @@ from django.db.utils import IntegrityError
 from django.test import TestCase, override_settings
 
 from freezegun import freeze_time
-from wagtail.core.models import GroupApprovalTask, Page, Task, TaskState, Workflow, WorkflowPage, WorkflowState, WorkflowTask
+from wagtail.core.models import (
+    GroupApprovalTask, Page, Task, TaskState, Workflow, WorkflowPage, WorkflowState, WorkflowTask)
 from wagtail.tests.testapp.models import SimplePage
 
 
