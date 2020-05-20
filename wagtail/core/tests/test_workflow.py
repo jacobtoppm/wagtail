@@ -208,6 +208,3 @@ class TestWorkflows(TestCase):
         self.assertEqual(workflow_state.status, WorkflowState.STATUS_CANCELLED)
         self.assertEqual(workflow_state.current_task_state.status, TaskState.STATUS_CANCELLED)
         self.assertFalse(TaskState.objects.filter(workflow_state=workflow_state, status=TaskState.STATUS_IN_PROGRESS).exists())
-
-
-    

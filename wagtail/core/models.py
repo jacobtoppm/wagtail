@@ -2785,7 +2785,7 @@ class WorkflowState(models.Model):
         """Returns the next active task, which has not been either approved or skipped"""
         successful_task_states = self.task_states.filter(
             Q(status=TaskState.STATUS_APPROVED) | Q(status=TaskState.STATUS_SKIPPED)
-            )
+        )
         if getattr(settings, "WAGTAIL_WORKFLOW_REQUIRE_REAPPROVAL_ON_EDIT", False):
             successful_task_states = successful_task_states.filter(page_revision=self.page.get_latest_revision())
         return (

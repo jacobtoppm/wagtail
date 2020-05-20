@@ -441,7 +441,7 @@ def edit(request, page_id):
             is_restarting_workflow = bool(request.POST.get('action-restart-workflow')) and page_perms.can_submit_for_moderation() and workflow_state and workflow_state.user_can_cancel(request.user)
             is_reverting = bool(request.POST.get('revision'))
             is_cancelling_workflow = bool(request.POST.get('action-cancel-workflow')) and workflow_state and workflow_state.user_can_cancel(request.user)
-            
+
             if is_cancelling_workflow or is_restarting_workflow:
                 workflow_state.cancel(user=request.user)
 
@@ -549,7 +549,7 @@ def edit(request, page_id):
                         _('Edit')
                     )
                 ])
-            
+
             elif is_cancelling_workflow:
 
                 message = _(

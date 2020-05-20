@@ -579,7 +579,6 @@ class TestApproveRejectWorkflow(TestCase, WagtailTestUtils):
         }
         return self.client.post(reverse('wagtailadmin_pages:edit', args=(self.page.id,)), post_data)
 
-    
 
     @override_settings(WAGTAIL_FINISH_WORKFLOW_ACTION='')
     def test_approve_task_and_workflow(self):
