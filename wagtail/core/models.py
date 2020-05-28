@@ -2907,6 +2907,7 @@ class TaskState(MultiTableCopyMixin, models.Model):
         on_delete=models.SET_NULL,
         related_name='finished_task_states'
     )
+    comment = models.TextField(blank=True)
     content_type = models.ForeignKey(
         ContentType,
         verbose_name=_('content type'),
@@ -2951,12 +2952,13 @@ class TaskState(MultiTableCopyMixin, models.Model):
             return content_type.get_object_for_this_type(id=self.id)
 
     @transaction.atomic
-    def approve(self, user=None, update=True):
+    def approve(self, user=None, update=True, comment=''):
         """Approve the task state and update the workflow state"""
         if self.status != self.STATUS_IN_PROGRESS:
             raise PermissionDenied
         self.status = self.STATUS_APPROVED
         self.finished_at = timezone.now()
+        self.comment = comment
         self.save()
         if update:
             self.workflow_state.update(user=user)
@@ -2964,12 +2966,13 @@ class TaskState(MultiTableCopyMixin, models.Model):
         return self
 
     @transaction.atomic
-    def reject(self, user=None, update=True):
+    def reject(self, user=None, update=True, comment=''):
         """Reject the task state and update the workflow state"""
         if self.status != self.STATUS_IN_PROGRESS:
             raise PermissionDenied
         self.status = self.STATUS_REJECTED
         self.finished_at = timezone.now()
+        self.comment = comment
         self.save()
         if update:
             self.workflow_state.update(user=user)
@@ -2989,11 +2992,12 @@ class TaskState(MultiTableCopyMixin, models.Model):
         return started_at
 
     @transaction.atomic
-    def cancel(self, user=None, resume=False):
+    def cancel(self, user=None, resume=False, comment=''):
         """Cancel the task state and update the workflow state. If ``resume`` is set to True, then upon update the workflow state
         is passed the current task as ``next_task``, causing it to start a new task state on the current task if possible"""
         self.status = self.STATUS_CANCELLED
         self.finished_at = timezone.now()
+        self.comment = comment
         self.save()
         if resume:
             self.workflow_state.update(user=user, next_task=self.task.specific)
@@ -3019,7 +3023,7 @@ class TaskState(MultiTableCopyMixin, models.Model):
         This could be a comment by the reviewer, or generated.
         Use mark_safe to return HTML.
         """
-        return ""
+        return self.comment
 
     class Meta:
         verbose_name = _('Task state')
