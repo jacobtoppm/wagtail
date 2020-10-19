@@ -4696,7 +4696,7 @@ class Comment(models.Model):
         verbose_name_plural = _('comments')
 
     def __str__(self):
-        return _("Comment on Page '{0}', left by {1}: '{2}'").format(self.page, self.user, self.text)
+        return "Comment on Page '{0}', left by {1}: '{2}'".format(self.page, self.user, self.text)
 
     def clean(self):
         if self.revision_resolved and not (self.revision_created.created_at < self.revision_resolved.created_at):
@@ -4727,7 +4727,7 @@ class CommentPosition(models.Model):
         verbose_name_plural = _('comment positions')
 
     def __str__(self):
-        return _("CommentPosition for Comment '{0}' on PageRevision '{1}'").format(self.comment.text, self.revision)
+        return "CommentPosition for Comment '{0}' on PageRevision '{1}'".format(self.comment.text, self.revision)
 
 
 class CommentReply(models.Model):
@@ -4742,4 +4742,4 @@ class CommentReply(models.Model):
         verbose_name_plural = _('comment replies')
 
     def __str__(self):
-        return _("CommentReply left by '{0}': '{1}'").format(self.user, self.text)
+        return "CommentReply left by '{0}': '{1}'".format(self.user, self.text)
